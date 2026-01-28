@@ -11,6 +11,12 @@ export type { DingtalkConfig };
 export interface DingtalkRawMessage {
   /** 发送者 ID */
   senderId: string;
+  /** 发送者 staffId（部分事件提供） */
+  senderStaffId?: string;
+  /** 发送者 userId（部分事件提供） */
+  senderUserId?: string;
+  /** 发送者 userid（部分事件提供） */
+  senderUserid?: string;
   /** 发送者昵称 */
   senderNick: string;
   /** 会话类型: "1" = 单聊, "2" = 群聊 */

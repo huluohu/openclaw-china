@@ -50,10 +50,16 @@ export function parseDingtalkMessage(raw: DingtalkRawMessage): DingtalkMessageCo
   // 生成消息 ID（钉钉 Stream 消息没有独立 messageId，使用 conversationId + 时间戳）
   const messageId = `${raw.conversationId}_${Date.now()}`;
   
+  const senderId =
+    raw.senderStaffId ??
+    raw.senderUserId ??
+    raw.senderUserid ??
+    raw.senderId;
+
   return {
     conversationId: raw.conversationId,
     messageId,
-    senderId: raw.senderId,
+    senderId,
     senderNick: raw.senderNick,
     chatType,
     content,
