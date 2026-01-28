@@ -21,6 +21,8 @@ pnpm install
 
 ## 钉钉插件配置
 
+> 📖 **[钉钉企业注册指南](doc/guides/dingtalk/configuration.md)** — 无需任何材料，最快 5 分钟完成配置
+
 在 Moltbot 配置文件中添加以下内容：
 
 ```json
