@@ -1,34 +1,46 @@
-## 钉钉
+# 钉钉渠道配置指南
+
+## 一、安装 OpenClaw
+
+### 1. 安装 OpenClaw
+
+```bash
+npm install -g openclaw@latest
+```
+
+### 2. 安装钉钉插件
+
+```bash
+openclaw plugins install @openclaw-china/channels
+```
+
+## 二、获取钉钉凭证
 
 ### 1. 创建企业
 
-不需要任何材料。
+不需要任何材料，手机、电脑端操作类似：
 
-手机、电脑端操作类似：
+1. 钉钉右上角点击「创建或加入企业」
 
-1. 钉钉右上角点击 "创建或加入企业"
+   <img src="../../images/dingtalk_create_enterprise_button.png" alt="Create Enterprise Button" style="zoom:50%;" />
 
-   > <img src="../../images/dingtalk_create_enterprise_button.png" alt="Create Enterprise Button" style="zoom:50%;" />
+2. 选择「企业」
 
-2. 选择 "企业"
+3. 选择「创建企业/团队」
 
-3. 选择 "创建企业/团队"
+4. 填写企业信息
 
-4. 随便输入一些信息
+   <img src="../../images/dingtalk_enterprise_info_form.png" alt="Enterprise Info Form" style="zoom:50%;" />
 
-   > <img src="../../images/dingtalk_enterprise_info_form.png" alt="Enterprise Info Form" style="zoom:50%;" />
+### 2. 登录开发者平台
 
-### 2. 登录 [开发者平台](https://open.dingtalk.com/)
-
-网址：https://open-dev.dingtalk.com/
-
-点击右上角头像进行企业切换，切换到刚创建的。
+访问 [钉钉开放平台](https://open-dev.dingtalk.com/)，点击右上角头像切换到刚创建的企业。
 
 <img src="../../images/dingtalk_switch_enterprise.png" alt="Switch Enterprise" style="zoom:50%;" />
 
 ### 3. 创建应用
 
-点击主页的 "创建应用"
+点击主页的「创建应用」：
 
 ![Create App Button](../../images/dingtalk_create_app_button.png)
 
@@ -36,17 +48,19 @@
 
 ![App Creation Form](../../images/dingtalk_app_creation_form.png)
 
-输入相关信息，点击发布
+填写应用信息后点击发布：
 
 ![App Publish](../../images/dingtalk_app_publish.png)
 
 ### 4. 获取 clientId / clientSecret
 
+在应用详情页获取凭证：
+
 ![Credentials](../../images/dingtalk_credentials.png)
 
-### 5. 版本发布
+### 5. 发布版本
 
-注：只有进行版本发布，钉钉中才能搜索到这个机器人。
+> 只有发布版本后，才能在钉钉中搜索到机器人。
 
 ![Version Create](../../images/dingtalk_version_create.png)
 
@@ -56,23 +70,39 @@
 
 ### 6. 启用 AI Card 流式输出（可选）
 
-在 OpenClaw 配置中显式开启：
-
-```json
-{
-  "channels": {
-    "dingtalk": {
-      "enableAICard": true
-    }
-  }
-}
-```
-
-说明：
-- 设置 `"enableAICard": true` 后，钉钉将使用 AI Card 流式输出。
-- 需要在钉钉应用权限中开通 `Card.Instance.Write` 和 `Card.Streaming.Write`。
-- 如果未开启权限或不启用 AI Card，也不影响正常对话；系统会回退到普通消息，并在日志中给出权限申请指引链接。
+如需使用 AI Card 流式输出，需要在钉钉应用权限中开通：
+- `Card.Instance.Write`
+- `Card.Streaming.Write`
 
 ![Permission Search](../../images/dingtalk_permission_search.png)
 
 ![Permission Apply](../../images/dingtalk_permission_apply.png)
+
+> 如果未开启权限或不启用 AI Card，也不影响正常对话；系统会回退到普通消息，并在日志中给出权限申请指引链接。
+
+## 三、配置与启动
+
+### 1. 配置钉钉渠道
+
+```bash
+openclaw config set channels.dingtalk '{
+  "enabled": true,
+  "clientId": "dingxxxxxx",
+  "clientSecret": "your-app-secret",
+  "enableAICard": true
+}' --json
+```
+
+### 2. 启动服务
+
+**调试模式**（推荐先用这个，方便查看日志）：
+
+```bash
+openclaw gateway --port 18789 --verbose
+```
+
+**后台运行**（调试成功后）：
+
+```bash
+openclaw daemon start
+```
