@@ -58,7 +58,7 @@ export const feishuPlugin = {
 
   capabilities: {
     chatTypes: ["direct", "channel"] as const,
-    media: false,
+    media: true,
     reactions: false,
     threads: false,
     edit: false,

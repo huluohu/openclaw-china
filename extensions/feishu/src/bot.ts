@@ -6,6 +6,7 @@
 
 import type { FeishuMessageEvent, FeishuMessageContext } from "./types.js";
 import type { FeishuConfig } from "./config.js";
+import { FeishuConfigSchema } from "./config.js";
 import { getFeishuRuntime, isFeishuRuntimeInitialized } from "./runtime.js";
 import { sendMarkdownCardFeishu, sendMessageFeishu } from "./send.js";
 import { createLogger, type Logger } from "./logger.js";
@@ -136,7 +137,17 @@ export async function handleFeishuMessage(params: {
   }
 
   const feishuCfg = (cfg as Record<string, unknown>)?.channels as Record<string, unknown> | undefined;
-  const channelCfg = feishuCfg?.feishu as FeishuConfig | undefined;
+  const rawChannelCfg = feishuCfg?.feishu as FeishuConfig | undefined;
+  const parsedCfg = rawChannelCfg ? FeishuConfigSchema.safeParse(rawChannelCfg) : null;
+  if (parsedCfg && !parsedCfg.success) {
+    logger.warn(`invalid feishu config, using raw values: ${parsedCfg.error.message}`);
+  }
+  const channelCfg = parsedCfg?.success ? parsedCfg.data : rawChannelCfg;
+  logger.debug(
+    `config snapshot: channels.feishu=${channelCfg ? "present" : "missing"}, sendMarkdownAsCard=${
+      channelCfg?.sendMarkdownAsCard ?? "undefined"
+    }`
+  );
 
   if (isGroup) {
     const groupPolicy = channelCfg?.groupPolicy ?? "open";
@@ -234,6 +245,11 @@ export async function handleFeishuMessage(params: {
           : [rawText];
 
       for (const chunk of chunks) {
+        logger.debug(
+          `send reply via ${
+            channelCfg.sendMarkdownAsCard ? "interactive markdown card" : "text message"
+          } (receive_id_type=chat_id, chunk_len=${chunk.length})`
+        );
         if (channelCfg.sendMarkdownAsCard) {
           await sendMarkdownCardFeishu({
             cfg: channelCfg,
