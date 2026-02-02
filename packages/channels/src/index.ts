@@ -38,6 +38,10 @@ import {
   getWecomAppRuntime,
   sendWecomAppMessage,
   getAccessToken,
+  sendWecomAppMarkdownMessage,
+  stripMarkdown,
+  clearAccessTokenCache,
+  clearAllAccessTokenCache,
 } from "@openclaw-china/wecom-app";
 import wecomAppEntry from "@openclaw-china/wecom-app";
 
@@ -62,6 +66,10 @@ export {
   getWecomAppRuntime,
   sendWecomAppMessage,
   getAccessToken,
+  sendWecomAppMarkdownMessage,
+  stripMarkdown,
+  clearAccessTokenCache,
+  clearAllAccessTokenCache,
 };
 
 export type {
