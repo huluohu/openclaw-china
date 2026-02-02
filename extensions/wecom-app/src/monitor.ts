@@ -16,7 +16,7 @@ import {
 } from "./crypto.js";
 import { dispatchWecomAppMessage } from "./bot.js";
 import { tryGetWecomAppRuntime } from "./runtime.js";
-import { sendWecomAppMessage } from "./api.js";
+import { sendWecomAppMessage, stripMarkdown } from "./api.js";
 
 export type WecomAppRuntimeEnv = {
   log?: (message: string) => void;
@@ -49,7 +49,8 @@ const msgidToStreamId = new Map<string, string>();
 const STREAM_TTL_MS = 10 * 60 * 1000;
 /** 增大到 500KB (用户偏好) */
 const STREAM_MAX_BYTES = 512_000;
-const INITIAL_STREAM_WAIT_MS = 800;
+/** 等待时间：5秒是企业微信最大响应时间，用于累积足够内容 */
+const INITIAL_STREAM_WAIT_MS = 5000;
 
 function normalizeWebhookPath(raw: string): string {
   const trimmed = raw.trim();
@@ -593,25 +594,21 @@ export async function handleWecomAppWebhookRequest(req: IncomingMessage, res: Se
 
   const core = tryGetWecomAppRuntime();
 
+  // 解析发送者信息用于后续主动发送
+  const senderId = msg.from?.userid?.trim() ?? (msg as { FromUserName?: string }).FromUserName?.trim();
+  const chatid = msg.chatid?.trim();
+
   if (core) {
     const state = streams.get(streamId);
     if (state) state.started = true;
 
-
-
-      const hooks = {
-        onChunk: (text: string) => {
-          const current = streams.get(streamId);
-          if (!current) return;
-          appendStreamContent(current, text);
-          target.statusSink?.({ lastOutboundAt: Date.now() });
-
-          // NOTE: 企业微信消息顺序控制
-          // 由于企业微信需要 5 秒内返回 HTTP 响应，且主动发送和被动回复会竞争
-          // 为避免消息顺序错乱，这里不立即主动发送
-          // 而是在下方的 HTTP 响应中返回累积内容
-          // TODO: 未来可实现队列机制，先返回占位符，再通过 API 更新消息
-        },
+    const hooks = {
+      onChunk: (text: string) => {
+        const current = streams.get(streamId);
+        if (!current) return;
+        appendStreamContent(current, text);
+        target.statusSink?.({ lastOutboundAt: Date.now() });
+      },
       onError: (err: unknown) => {
         const current = streams.get(streamId);
         if (current) {
@@ -624,6 +621,7 @@ export async function handleWecomAppWebhookRequest(req: IncomingMessage, res: Se
       },
     };
 
+    // 启动消息处理（异步，不阻塞 HTTP 响应）
     dispatchWecomAppMessage({
       cfg: target.config,
       account: target.account,
@@ -633,11 +631,31 @@ export async function handleWecomAppWebhookRequest(req: IncomingMessage, res: Se
       log: target.runtime.log,
       error: target.runtime.error,
     })
-      .then(() => {
+      .then(async () => {
         const current = streams.get(streamId);
         if (current) {
           current.finished = true;
           current.updatedAt = Date.now();
+
+          // 如果支持主动发送，推送完整回复
+          if (target.account.canSendActive && (senderId || chatid) && current.content.trim()) {
+            try {
+              const formattedText = stripMarkdown(current.content);
+              const chunks = splitMessageByBytes(formattedText, 2048);
+
+              // 逐段发送完整内容
+              for (const chunk of chunks) {
+                await sendWecomAppMessage(
+                  target.account,
+                  chatid ? { chatid } : { userId: senderId },
+                  chunk
+                );
+              }
+              logger.info(`主动发送完成: streamId=${streamId}, 共 ${chunks.length} 段`);
+            } catch (err) {
+              logger.error(`主动发送失败: ${String(err)}`);
+            }
+          }
         }
       })
       .catch((err) => {
@@ -658,17 +676,13 @@ export async function handleWecomAppWebhookRequest(req: IncomingMessage, res: Se
     }
   }
 
-  await waitForStreamContent(streamId, INITIAL_STREAM_WAIT_MS);
-  const state = streams.get(streamId);
-  const initialReply = state && (state.content.trim() || state.error)
-    ? buildStreamReplyFromState(state)
-    : buildStreamPlaceholderReply(streamId);
-
+  // 立即返回占位符响应（< 1秒），不等待 Agent 完成
+  const placeholderReply = buildStreamPlaceholderReply(streamId);
   jsonOk(
     res,
     buildEncryptedJsonReply({
       account: target.account,
-      plaintextJson: initialReply,
+      plaintextJson: placeholderReply,
       nonce: msgNonce,
       timestamp: msgTimestamp,
     })
