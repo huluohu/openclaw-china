@@ -2,9 +2,10 @@
  * 飞书出站适配器
  */
 
-import { sendMarkdownCardFeishu, sendMessageFeishu } from "./send.js";
+import { sendImageFeishu, sendMarkdownCardFeishu, sendMessageFeishu } from "./send.js";
 import { getFeishuRuntime } from "./runtime.js";
 import type { FeishuConfig } from "./types.js";
+import { FeishuConfigSchema } from "./config.js";
 
 export interface OutboundConfig {
   channels?: {
@@ -49,12 +50,21 @@ export const feishuOutbound = {
   sendText: async (params: { cfg: OutboundConfig; to: string; text: string }): Promise<SendResult> => {
     const { cfg, to, text } = params;
 
-    const feishuCfg = cfg.channels?.feishu;
+    const rawFeishuCfg = cfg.channels?.feishu;
+    const parsedCfg = rawFeishuCfg ? FeishuConfigSchema.safeParse(rawFeishuCfg) : null;
+    const feishuCfg = parsedCfg?.success ? parsedCfg.data : rawFeishuCfg;
     if (!feishuCfg) {
       throw new Error("Feishu channel not configured");
     }
 
     const { targetId, receiveIdType } = parseTarget(to);
+
+    // Minimal runtime trace for markdown vs text path
+    const sendMode = feishuCfg.sendMarkdownAsCard ? "interactive markdown card" : "text message";
+    // eslint-disable-next-line no-console
+    console.log(
+      `[feishu] outbound sendText via ${sendMode} (receive_id_type=${receiveIdType}, text_len=${text.length})`
+    );
 
     const result = feishuCfg.sendMarkdownAsCard
       ? await sendMarkdownCardFeishu({
@@ -75,6 +85,70 @@ export const feishuOutbound = {
       messageId: result.messageId,
       chatId: result.chatId,
       conversationId: result.chatId,
+    };
+  },
+
+  sendMedia: async (params: {
+    cfg: OutboundConfig;
+    to: string;
+    text?: string;
+    mediaUrl?: string;
+  }): Promise<SendResult> => {
+    const { cfg, to, text, mediaUrl } = params;
+
+    const feishuCfg = cfg.channels?.feishu;
+    if (!feishuCfg) {
+      throw new Error("Feishu channel not configured");
+    }
+
+    const { targetId, receiveIdType } = parseTarget(to);
+
+    if (text?.trim()) {
+      await sendMessageFeishu({
+        cfg: feishuCfg,
+        to: targetId,
+        text,
+        receiveIdType,
+      });
+    }
+
+    if (mediaUrl) {
+      try {
+        const result = await sendImageFeishu({
+          cfg: feishuCfg,
+          to: targetId,
+          mediaUrl,
+          receiveIdType,
+        });
+        return {
+          channel: "feishu",
+          messageId: result.messageId,
+          chatId: result.chatId,
+          conversationId: result.chatId,
+        };
+      } catch (err) {
+        console.error(`[feishu] sendImageFeishu failed:`, err);
+        const fallbackText = `📎 ${mediaUrl}`;
+        const result = await sendMessageFeishu({
+          cfg: feishuCfg,
+          to: targetId,
+          text: fallbackText,
+          receiveIdType,
+        });
+        return {
+          channel: "feishu",
+          messageId: result.messageId,
+          chatId: result.chatId,
+          conversationId: result.chatId,
+        };
+      }
+    }
+
+    return {
+      channel: "feishu",
+      messageId: text?.trim() ? `text_${Date.now()}` : "empty",
+      chatId: targetId,
+      conversationId: targetId,
     };
   },
 };
