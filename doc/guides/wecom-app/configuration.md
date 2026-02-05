@@ -143,17 +143,19 @@ openclaw plugins list
   **格式**：`<协议>://<域名或IP>:<端口>/<路径>`
 
   **示例**：
+
   - 使用域名（推荐）：`https://your.domain.com/wecom-app`
   - 使用 IP 地址：`http://123.45.67.89:18789/wecom-app`
 
   **说明**：
+
   - **协议**：如果有域名和 SSL 证书，使用 `https://`；否则使用 `http://`
   - **域名/IP**：填写你服务器的公网域名或公网 IP 地址
   - **端口**：填写 OpenClaw Gateway 监听的端口（默认 `18789`）
   - **路径**：必须与配置文件中的 `webhookPath` 一致（默认 `/wecom-app`）
 
   > 💡 **如何获取公网 IP**：在服务器上运行 `curl ifconfig.me` 或访问 [ifconfig.me](https://ifconfig.me)
-
+  >
 - **Token**：自定义一个字符串，例如 `your-random-token`
 - **EncodingAESKey**：点击「随机获取」生成 43 位字符
 
@@ -458,19 +460,11 @@ curl ifconfig.me
 
 本仓库提供本地技能包：`extensions/wecom-app/skills/wecom-app-ops`，用于指导 wecom-app 常见操作（如何获取/规范化 target、如何回发图片/录音/文件、如何使用 saved 路径做 OCR、常见报错排障等）。
 
-**安装到 Workspace（推荐）**
-
-```bash
-# 在你的 OpenClaw workspace 目录下执行
-mkdir -p ./skills
-cp -a /path/to/openclaw-china/extensions/wecom-app/skills/wecom-app-ops ./skills/
-```
-
 **安装到全局**
 
 ```bash
 mkdir -p ~/.openclaw/skills
-cp -a /path/to/openclaw-china/extensions/wecom-app/skills/wecom-app-ops ~/.openclaw/skills/
+cp -a ~/.openclaw/extensions/openclaw-china/extensions/wecom-app/skills/wecom-app-ops ~/.openclaw/skills/
 ```
 
 复制后一般无需重启网关；**如果你希望立刻出现在“可触发 skills 列表”里**，建议重启一次 Gateway 以刷新 skills 索引。
