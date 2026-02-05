@@ -417,6 +417,11 @@ cp -a /path/to/openclaw-china/extensions/wecom-app/skills/wecom-app-ops ~/.openc
 - stream 占位/刷新（为适配企业微信 5 秒响应限制的缓冲式输出）
 
 ### 入站媒体（产品级留存）
+
+**Why / 设计动机**
+- 产品化目标是“消息里的 `saved:` 路径可长期复用”，而不是依赖 `/tmp` 这类易被清理的短期目录。
+- 这样 OCR/MCP、二次回发、归档/审计等流程才不会因为文件丢失而不稳定。
+
 - 支持 `image` / `voice` / `file` / `mixed`
 - 优先通过 `MediaId` 下载媒体；必要时回退 URL（如图片 PicUrl）
 - 媒体落盘：先 tmp 中转，再归档到 `inboundMedia.dir/YYYY-MM-DD/`

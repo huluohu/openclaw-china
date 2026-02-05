@@ -174,6 +174,7 @@ openclaw config set channels.wecom-app.agentId 1000002
 
 - 入站：支持 JSON/XML 回调、验签与解密、长文本分片（2048 bytes）、stream 占位/刷新（5s 规则下缓冲）。
 - 入站媒体：image/voice/file/mixed 自动落盘，消息体写入 `saved:` 稳定路径；按 `keepDays` 延迟清理。
+  - 设计动机：避免使用 `/tmp` 造成“收到后很快被清理”，确保 OCR/MCP/回发等二次处理有稳定路径可依赖。
 - 出站：支持主动发送文本与媒体；支持 markdown→纯文本降级（stripMarkdown）。
 - 路由与目标：支持多种 target 解析（`wecom-app:user:..` / `user:..` / 裸 id / `@accountId`），减少 Unknown target。
 - 策略与多账号：支持 defaultAccount/accounts；dmPolicy/groupPolicy/allowlist/requireMention；inboundMedia(开关/dir/maxBytes/keepDays)。
