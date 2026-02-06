@@ -3,7 +3,13 @@
  */
 
 import { QQBotConfigSchema } from "./config.js";
-import { getAccessToken, sendC2CMessage, sendGroupMessage, sendChannelMessage } from "./client.js";
+import {
+  getAccessToken,
+  sendC2CInputNotify,
+  sendC2CMessage,
+  sendGroupMessage,
+  sendChannelMessage,
+} from "./client.js";
 import { sendFileQQBot } from "./send.js";
 import type { QQBotConfig, QQBotSendResult } from "./types.js";
 
@@ -105,14 +111,15 @@ export const qqbotOutbound = {
     to: string;
     text?: string;
     mediaUrl?: string;
+    replyToId?: string;
   }): Promise<QQBotSendResult> => {
-    const { cfg, to, mediaUrl, text } = params;
+    const { cfg, to, mediaUrl, text, replyToId } = params;
     if (!mediaUrl) {
       const fallbackText = text?.trim() ?? "";
       if (!fallbackText) {
         return { channel: "qqbot", error: "mediaUrl is required for sendMedia" };
       }
-      return qqbotOutbound.sendText({ cfg, to, text: fallbackText });
+      return qqbotOutbound.sendText({ cfg, to, text: fallbackText, replyToId });
     }
 
     const rawCfg = cfg.channels?.qqbot;
@@ -128,7 +135,7 @@ export const qqbotOutbound = {
     const target = parseTarget(to);
     if (target.kind === "channel") {
       const fallbackText = text?.trim() ? `${text}\n${mediaUrl}` : mediaUrl;
-      return qqbotOutbound.sendText({ cfg, to, text: fallbackText });
+      return qqbotOutbound.sendText({ cfg, to, text: fallbackText, replyToId });
     }
 
     try {
@@ -136,8 +143,46 @@ export const qqbotOutbound = {
         cfg: qqCfg,
         target: { kind: target.kind, id: target.id },
         mediaUrl,
+        messageId: replyToId,
       });
       return { channel: "qqbot", messageId: result.id, timestamp: result.timestamp };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { channel: "qqbot", error: message };
+    }
+  },
+
+  sendTyping: async (params: {
+    cfg: OutboundConfig;
+    to: string;
+    replyToId?: string;
+    inputSecond?: number;
+  }): Promise<QQBotSendResult> => {
+    const { cfg, to, replyToId, inputSecond } = params;
+    const rawCfg = cfg.channels?.qqbot;
+    const parsed = rawCfg ? QQBotConfigSchema.safeParse(rawCfg) : null;
+    const qqCfg = parsed?.success ? parsed.data : rawCfg;
+    if (!qqCfg) {
+      return { channel: "qqbot", error: "QQBot channel not configured" };
+    }
+    if (!qqCfg.appId || !qqCfg.clientSecret) {
+      return { channel: "qqbot", error: "QQBot not configured (missing appId/clientSecret)" };
+    }
+
+    const target = parseTarget(to);
+    if (target.kind !== "c2c") {
+      return { channel: "qqbot" };
+    }
+
+    try {
+      const accessToken = await getAccessToken(qqCfg.appId, qqCfg.clientSecret);
+      await sendC2CInputNotify({
+        accessToken,
+        openid: target.id,
+        messageId: replyToId,
+        inputSecond,
+      });
+      return { channel: "qqbot" };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { channel: "qqbot", error: message };

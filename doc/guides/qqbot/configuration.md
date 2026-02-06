@@ -1,10 +1,21 @@
 # QQ 渠道配置指南
+<div align="center">
+
+  <p>
+    <strong>⭐ 如果这个项目对你有帮助，请给我们一个Star！⭐</strong><br>
+    <em>您的支持是我们持续改进的动力</em>
+  </p>
+</div>
 
 本文档用于 QQ 开放平台机器人在 OpenClaw China 中的部署与配置。
 
 仓库地址：<https://github.com/BytePioneer-AI/openclaw-china>  
 
-**⭐ 如果这个项目对你有帮助，请给个 Star 支持一下~**
+<p align="center">
+  <img src="../../images/qqbot-showcase-01.jpg" alt="QQ Bot 展示图 1" width="32%" />
+  <img src="../../images/qqbot-showcase-02.jpg" alt="QQ Bot 展示图 2" width="32%" />
+  <img src="../../images/qqbot-showcase-03.jpg" alt="QQ Bot 展示图 3" width="32%" />
+</p>
 
 ## 一、获取 QQ 机器人凭证
 
@@ -94,6 +105,9 @@ openclaw config set channels.qqbot.enabled true
 openclaw config set channels.qqbot.appId your-app-id
 openclaw config set channels.qqbot.clientSecret your-app-secret
 openclaw config set channels.qqbot.markdownSupport false
+
+
+# 下面这些不需要配置，默认即可
 openclaw config set channels.qqbot.dmPolicy open
 openclaw config set channels.qqbot.groupPolicy open
 openclaw config set channels.qqbot.requireMention true
@@ -109,7 +123,7 @@ openclaw config set gateway.http.endpoints.chatCompletions.enabled true
 | enabled | boolean | true | 是否启用 QQ 渠道 |
 | appId | string | - | QQ 机器人 AppID |
 | clientSecret | string | - | QQ 机器人 AppSecret |
-| markdownSupport | boolean | false | 是否使用 markdown 消息格式 |
+| markdownSupport | boolean | false | 是否使用 markdown 消息格式（需申请） |
 | dmPolicy | string | "open" | 私聊策略：open/pairing/allowlist |
 | groupPolicy | string | "open" | 群聊策略：open/allowlist/disabled |
 | requireMention | boolean | true | 群聊是否必须 @ 机器人 |
@@ -122,9 +136,10 @@ openclaw config set gateway.http.endpoints.chatCompletions.enabled true
 
 ## 四、能力与限制
 
-- 当前实现支持文本消息收发与文件发送（C2C/群聊）
-- 频道内暂不支持文件发送（会降级为文本 + URL）
-- 不支持语音/视频媒体发送
+- 当前实现支持文本消息收发与图片发送（C2C/群聊）
+- QQ C2C/群聊富媒体接口暂不支持通用文件（`file_type=4`，例如 PDF），这是官方接口限制而非插件缺陷，会降级为文本提示
+- 频道内暂不支持媒体发送（会降级为文本 + URL）
+- 语音/视频媒体能力依赖平台权限与格式限制，需按官方接口开通与验证
 - 不支持平台级流式输出
 - 定时提醒通过 OpenClaw cron 触发（无需额外配置）
 

@@ -56,5 +56,3 @@ test-strip-markdown.mjs
 extensions/wecom-app/test-connection.mjs
 extensions/wecom-app/test-webhook.mjs
 extensions/wecom-app/test-server.mjs
-/AGENTS.md
-/.npmrc

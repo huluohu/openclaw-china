@@ -1,59 +1,89 @@
-# OpenClaw China
+# 🦞 OpenClaw China — China IM Channels
 
-面向中国 IM 平台的 OpenClaw 扩展插件集合
+<p align="center">
+  <strong>面向中国 IM 平台的 OpenClaw 扩展插件集合</strong>
+</p>
 
-⭐ 如果这个项目对你有帮助，请给个Star支持一下~
+<p align="center">
+  <a href="#快速开始">快速开始</a> •
+  <a href="#功能支持">功能支持</a> •
+  <a href="#演示">演示</a> •
+  <a href="#配置选项">配置选项</a> •
+  <a href="#开发">开发</a> •
+  <a href="#加入交流群">加入交流群</a>
+</p>
 
-[快速开始](#快速开始) · [演示](#演示) · [配置选项](#配置选项) · [开发](#开发)
+<p align="center">
+  <strong>⭐ 如果这个项目对你有帮助，请给我们一个Star！⭐</strong><br>
+  <em>您的支持是我们持续改进的动力</em>
+</p>
 
-| 平台 | 状态 |
-|------|:----:|
-| 钉钉 | ✅ 可用 |
-| 飞书 | ✅ 可用 |
-| 企业微信（智能机器人） | ✅ 可用 |
-| 企业微信（自建应用-可接入普通微信） | ✅ 可用 |
-| QQ 机器人 | ✅ 可用 |
-˚
+<table align="center">
+  <thead>
+    <tr>
+      <th>平台</th>
+      <th>状态</th>
+      <th>配置指南</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>钉钉</td>
+      <td align="center">✅ 可用</td>
+      <td><a href="doc/guides/dingtalk/configuration.md">钉钉企业注册指南</a></td>
+    </tr>
+    <tr>
+      <td>企业微信（自建应用-可接入微信）</td>
+      <td align="center">✅ 可用</td>
+      <td><a href="doc/guides/wecom-app/configuration.md">企业微信自建应用配置指南</a></td>
+    </tr>
+    <tr>
+      <td>QQ 机器人</td>
+      <td align="center">✅ 可用</td>
+      <td><a href="doc/guides/qqbot/configuration.md">QQ 渠道配置指南</a></td>
+    </tr>
+    <tr>
+      <td>飞书</td>
+      <td align="center">✅ 可用</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>企业微信（智能机器人）</td>
+      <td align="center">✅ 可用</td>
+      <td>-</td>
+    </tr>
+  </tbody>
+</table>
+
+
 ## 功能支持
 
-更多功能支持在努力开发中~
+更多功能在努力开发中~
 
-**【全网首发】钉钉支持文件接受和发送**
+- **【全网首发】钉钉、QQ、企微支持文件接受和发送**
+- **【全网首发】钉钉、QQ、飞书、企微支持定时任务**
 
-| 功能 | 钉钉 | 飞书 | QQ | 企业微信智能机器人 | 企业微信自建应用（可接入普通微信） |
+| 功能 | 钉钉 | 飞书 | QQ | 企业微信<br />智能机器人 | 企业微信自建应用<br />（可接入普通微信） |
 |------|:----:|:----:|:--:|:------------------:|:----------------:|
 | 文本消息 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Markdown | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 流式响应 | ✅ | 🚧 开发中 | ❌ | ✅ stream 回调 | ❌ |
-| 图片/文件 | ✅  | ✅可接收 | 🚧 开发中 | ✅ 可接收 | ✅ 主动发送（支持网络 URL 和本地文件） |
-| 语音消息 | ✅  | 🚧 开发中 | ❌ | ✅ 仅接收（语音文本） | ✅ 仅接收 |
+| 流式响应 | ✅ | 🚧 | ❌ | 🚧 | ❌ |
+| 图片/文件 | ✅  | ✅可接收 | ✅可接收 | ✅ 可接收 | ✅ 主动发送（支持网络 URL 和本地文件） |
+| 语音消息 | ✅  | 🚧 | ❌ | ✅ 仅接收 | ✅ 仅接收 |
 | 私聊 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 群聊 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| @机器人检测 | ✅ | ✅ | ✅ | ❌（未显式解析@） | ❌ |
-| 多账户 | 🚧 开发中 | 🚧 开发中 | 🚧 开发中 | ✅ | ✅ |
+| @机器人检测 | ✅ | ✅ | ✅ | ❌ | ❌ |
+| 多账户 | 🚧 | 🚧 | 🚧 | ✅ | ✅ |
 | 主动发送消息 | ✅ | ✅ | ✅ | ❌ | ✅（文本、图片、Markdown） |
-| 连接方式 | Stream 长连接 | WebSocket 长连接 | - | HTTPS 回调 | HTTPS 回调 |
+| 连接方式 | Stream | WebSocket | - | HTTPS 回调 | HTTPS 回调 |
 | Access Token 缓存 | - | - | - | - | ✅（2 小时有效期） |
 
-> 💡 **钉钉 AI Card** 支持打字机效果的流式输出，体验最佳。启用方式：`enableAICard: true`
->
-> 💡 **飞书 Markdown 卡片** 启用方式：`sendMarkdownAsCard: true`
->
-> 💡 **企业微信智能机器人** 仅支持被动回复模式，不支持主动发送消息
->
-> 💡 **企业微信自建应用** 支持主动发送消息，需要配置 `corpId`、`corpSecret`、`agentId`
-
-## 2.4 更新
-
-1. 钉钉、飞书支持定时任务（主动发送消息）。
-2. 修复钉钉语音发送问题，当前可正常发送语音。
-3. 之前默认只发送最终回复文本，但部分任务等待较长；现开放参数 `replyFinalOnly`（默认 `false`）以控制是否仅发送最终结果。
 
 ## 快速开始
 
 ### 1) 安装
 
-> 飞书、企业微信保姆文档编写中，现在最容易配置的是钉钉，建议先尝试钉钉。
+> 其他保姆文档编写中，现在最容易配置的是钉钉，建议先尝试钉钉。
 
 #### 方式一：从 npm 安装
 
@@ -118,7 +148,8 @@ pnpm build
 
 ### 2) 配置渠道
 
-#### 钉钉
+<details>
+<summary><strong>钉钉</strong></summary>
 
 > 📖 **[钉钉企业注册指南](doc/guides/dingtalk/configuration.md)** — 无需材料，5 分钟内完成配置
 
@@ -138,7 +169,7 @@ openclaw config set gateway.http.endpoints.chatCompletions.enabled true
 {
   "channels": {
     "dingtalk": {
-      "dmPolicy": "open",          // open | allowlist
+      "dmPolicy": "open",          // open | pairing | allowlist
       "groupPolicy": "open",       // open | allowlist | disabled
       "requireMention": true,
       "allowFrom": [],
@@ -148,8 +179,10 @@ openclaw config set gateway.http.endpoints.chatCompletions.enabled true
 }
 ```
 
+</details>
 
-#### 企业微信（自建应用-可接入微信）
+<details>
+<summary><strong>企业微信（自建应用-可接入微信）</strong></summary>
 
 由[@RainbowRain9 Cai Hongyu](https://github.com/RainbowRain9)提供
 
@@ -188,19 +221,47 @@ openclaw config set channels.wecom-app.agentId 1000002
 
 > 更完整说明见：`doc/guides/wecom-app/configuration.md`
 
+**（可选）安装 wecom-app 专用 Skill**
 
-#### QQ
+企业微信自建应用可配套使用 `wecom-app-ops`（target/replyTo/回发图片/录音/文件、OCR/MCP、排障、媒体保留策略）。
 
-> ?? **[QQ 渠道配置指南](https://github.com/BytePioneer-AI/openclaw-china/blob/main/doc/guides/qqbot/configuration.md)**
+安装方式（推荐：Workspace 级）：
+
+```bash
+# 在你的项目目录（workspace）下
+mkdir -p ./skills
+cp -a /path/to/openclaw-china/skills/wecom-app-ops ./skills/
+```
+
+或安装方式（全局）：
+
+```bash
+mkdir -p ~/.openclaw/skills
+cp -a /path/to/openclaw-china/skills/wecom-app-ops ~/.openclaw/skills/
+```
+
+> 说明：Workspace > 全局（`~/.openclaw/skills`）> 内置 skills。复制后无需重启网关。
+
+</details>
+
+<details>
+<summary><strong>QQ</strong></summary>
+
+> 📖 **[QQ 渠道配置指南](https://github.com/BytePioneer-AI/openclaw-china/blob/main/doc/guides/qqbot/configuration.md)**
 
 ```bash
 openclaw config set channels.qqbot.enabled true
 openclaw config set channels.qqbot.appId your-app-id
 openclaw config set channels.qqbot.clientSecret your-app-secret
-openclaw config set channels.qqbot.markdownSupport true
+openclaw config set channels.qqbot.markdownSupport false
 ```
 
-#### 企业微信（智能机器人）
+</details>
+
+MarkDown需申请相关权限。
+
+<details>
+<summary><strong>企业微信（智能机器人）</strong></summary>
 
 > 企业微信智能机器人（API 模式）通过公网 HTTPS 回调接收消息，仅支持被动回复
 
@@ -217,9 +278,10 @@ openclaw config set channels.wecom.encodingAESKey your-43-char-encoding-aes-key
 - `encodingAESKey` 必须为 43 位字符
 - 如遇回调校验失败，先确认 Token/EncodingAESKey 与后台一致
 
+</details>
 
-
-#### 飞书
+<details>
+<summary><strong>飞书</strong></summary>
 
 > 飞书应用需开启机器人能力，并使用「长连接接收消息」模式
 
@@ -232,38 +294,13 @@ openclaw config set channels.feishu.appSecret your-app-secret
 openclaw config set channels.feishu.sendMarkdownAsCard true
 ```
 
+</details>
 
 ### 3) 调试模式启动
 
 ```bash
 openclaw gateway --port 18789 --verbose
 ```
-
-### 4) （可选）安装本仓库自带 Skills
-
-本仓库在 `skills/` 目录下提供了一些可直接复制使用的本地技能包（AgentSkills）。
-
-**安装方式（推荐：Workspace 级）**
-
-把 `skills/<skill-name>` 复制到你的 OpenClaw 工作区：
-
-```bash
-# 在你的项目目录（workspace）下
-mkdir -p ./skills
-cp -a /path/to/openclaw-china/skills/wecom-app-ops ./skills/
-```
-
-**或安装方式（全局）**
-
-```bash
-mkdir -p ~/.openclaw/skills
-cp -a /path/to/openclaw-china/skills/wecom-app-ops ~/.openclaw/skills/
-```
-
-> 说明：Workspace > 全局（`~/.openclaw/skills`）> 内置 skills。复制后无需重启网关。
-
-当前内置示例：
-- `wecom-app-ops`：企业微信自建应用（wecom-app）日常操作指南（target/replyTo/回发图片/录音/文件、OCR/MCP、排障、媒体保留策略）
 
 ## 演示
 
@@ -288,7 +325,6 @@ cp -a /path/to/openclaw-china/skills/wecom-app-ops ~/.openclaw/skills/
 | `allowFrom` | 私聊白名单用户 ID |
 | `groupAllowFrom` | 群聊白名单群 ID |
 | `maxFileSizeMB` | 媒体文件大小限制 (MB)，默认 100 |
-| `replyFinalOnly` | 仅发送最终回复（非流式），默认 `false` |
 
 
 ### 会话配置（可选）
@@ -365,7 +401,9 @@ openclaw plugins install -l ./packages/channels
 }
 ```
 
-对OpenClaw用法、插件感兴趣的可以加群交流。
+## 加入交流群
+
+对 OpenClaw 用法、插件感兴趣的可以扫码加入微信群交流。
 
 - 安装问题可以加群询问
 - 提PR时遇到开发问题加群询问
@@ -375,7 +413,7 @@ openclaw plugins install -l ./packages/channels
 **欢迎同学们一起开发~**
 
 
-![cbd7b54fbf7ed4d33fc42b27f3d2d3b6](https://github.com/user-attachments/assets/ec987754-041a-46f4-829e-215bcf6a10a8)
+<img src="https://github.com/user-attachments/assets/ec987754-041a-46f4-829e-215bcf6a10a8" alt="二维码" width="50%" />
 
 
 
