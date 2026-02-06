@@ -343,7 +343,6 @@ export async function monitorDingtalkProvider(opts: MonitorDingtalkOpts = {}): P
           const senderName = rawMessage.senderNick ?? rawMessage.senderId;
           const textPreview = contentTrimmed.slice(0, 50);
           logger.info(`Inbound: from=${senderName} text="${textPreview}${contentTrimmed.length > 50 ? "..." : ""}"`);
-          logger.debug(`streamId=${streamMessageId ?? "none"} convo=${rawMessage.conversationId}`);
 
           // 异步处理消息（ACK 已在前面发送）
           void handleDingtalkMessage({

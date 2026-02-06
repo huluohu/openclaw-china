@@ -284,7 +284,7 @@ async function* streamFromGateway(params: {
             if (lastChunkTime !== null) {
               const timeSinceLastChunk = now - lastChunkTime;
               if (timeSinceLastChunk > TASK_BOUNDARY_THRESHOLD_MS) {
-                yield "\n\n";
+                yield "\n\n---\n\n"; 
               }
             }
 
@@ -727,33 +727,6 @@ export async function handleDingtalkMessage(params: {
   const isGroup = ctx.chatType === "group";
   const audioRecognition = resolveAudioRecognition(raw);
   
-  // 添加详细的原始消息调试日志
-  logger.debug(`raw message: msgtype=${raw.msgtype}, hasText=${!!raw.text?.content}, hasContent=${!!raw.content}, textContent="${raw.text?.content ?? ""}"`);
-  
-  // 对于 richText 消息，输出完整的原始消息结构以便调试
-  if (raw.msgtype === "richText") {
-    try {
-      // 安全地序列化原始消息（排除可能的循环引用）
-      const safeRaw = {
-        msgtype: raw.msgtype,
-        conversationId: raw.conversationId,
-        conversationType: raw.conversationType,
-        senderId: raw.senderId,
-        senderNick: raw.senderNick,
-        text: raw.text,
-        content: raw.content,
-        // 检查是否有其他可能包含文本的字段
-        hasRichTextInRoot: "richText" in raw,
-        allKeys: Object.keys(raw),
-      };
-      logger.debug(`[FULL RAW] richText message structure: ${JSON.stringify(safeRaw)}`);
-    } catch (e) {
-      logger.debug(`[FULL RAW] failed to serialize: ${String(e)}`);
-    }
-  }
-  
-  logger.debug(`received message from ${ctx.senderId} in ${ctx.conversationId} (${ctx.chatType})`);
-  
   // 获取钉钉配置
   const dingtalkCfg = (cfg as Record<string, unknown>)?.channels as Record<string, unknown> | undefined;
   const channelCfg = dingtalkCfg?.dingtalk as DingtalkConfig | undefined;
@@ -1142,15 +1115,15 @@ export async function handleDingtalkMessage(params: {
     const tableMode = "bullets";
 
     const deliver = async (payload: { text?: string; mediaUrl?: string; mediaUrls?: string[] }, info?: { kind?: string }) => {
-      if (replyFinalOnly && (!info || info.kind !== "final")) {
-        return false;
-      }
       logger.debug(
-        `[reply] payload=${JSON.stringify({
+        `[reply] meta=${JSON.stringify({
+          kind: info?.kind ?? "unknown",
           hasText: typeof payload.text === "string",
-          text: payload.text,
-          mediaUrl: payload.mediaUrl,
-          mediaUrls: payload.mediaUrls,
+          mediaCount: Array.isArray(payload.mediaUrls)
+            ? payload.mediaUrls.length
+            : payload.mediaUrl
+              ? 1
+              : 0,
         })}`
       );
       const targetId = isGroup ? ctx.conversationId : ctx.senderId;
@@ -1237,14 +1210,6 @@ export async function handleDingtalkMessage(params: {
       return sent;
     };
 
-    const replyFinalOnly = dingtalkCfgResolved.replyFinalOnly !== false;
-    const deliverFinalOnly = async (
-      payload: { text?: string; mediaUrl?: string; mediaUrls?: string[] },
-      info?: { kind?: string }
-    ): Promise<boolean> => {
-      return await deliver(payload, info);
-    };
-
     const humanDelay = (replyApi?.resolveHumanDelayConfig as ((cfg: unknown, agentId?: string) => unknown) | undefined)?.(
       cfg,
       (route as Record<string, unknown>)?.agentId as string | undefined
@@ -1264,46 +1229,17 @@ export async function handleDingtalkMessage(params: {
     if (dispatchReplyWithBufferedBlockDispatcher) {
       logger.debug(`dispatching to agent (buffered, session=${(route as Record<string, unknown>)?.sessionKey})`);
       const deliveryState = { delivered: false, skippedNonSilent: 0 };
-      const buffered = {
-        lastText: "",
-        mediaUrls: [] as string[],
-        hasPayload: false,
-      };
-      const addBufferedMedia = (value?: string) => {
-        const trimmed = value?.trim();
-        if (!trimmed) return;
-        if (buffered.mediaUrls.includes(trimmed)) return;
-        buffered.mediaUrls.push(trimmed);
-      };
       const result = await dispatchReplyWithBufferedBlockDispatcher({
         ctx: finalCtx,
         cfg,
         dispatcherOptions: {
           deliver: async (payload: unknown, info?: { kind?: string }) => {
-            if (!replyFinalOnly) {
-              const didSend = await deliverFinalOnly(
-                payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] },
-                info
-              );
-              if (didSend) {
-                deliveryState.delivered = true;
-              }
-              return;
-            }
-
-            if (!info || info.kind !== "final") {
-              return;
-            }
-
-            const typed = payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] };
-            buffered.hasPayload = true;
-            if (typeof typed.text === "string" && typed.text.trim()) {
-              buffered.lastText = typed.text;
-            }
-            if (Array.isArray(typed.mediaUrls)) {
-              for (const url of typed.mediaUrls) addBufferedMedia(url);
-            } else if (typed.mediaUrl) {
-              addBufferedMedia(typed.mediaUrl);
+            const didSend = await deliver(
+              payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] },
+              info
+            );
+            if (didSend) {
+              deliveryState.delivered = true;
             }
           },
           humanDelay,
@@ -1317,19 +1253,6 @@ export async function handleDingtalkMessage(params: {
           },
         },
       });
-
-      if (buffered.hasPayload) {
-        const didSend = await deliver(
-          {
-            text: buffered.lastText,
-            mediaUrls: buffered.mediaUrls.length ? buffered.mediaUrls : undefined,
-          },
-          { kind: "final" }
-        );
-        if (didSend) {
-          deliveryState.delivered = true;
-        }
-      }
 
       if (!deliveryState.delivered && deliveryState.skippedNonSilent > 0) {
         await sendMessageDingtalk({
@@ -1351,7 +1274,7 @@ export async function handleDingtalkMessage(params: {
     const dispatcherResult = createDispatcherWithTyping
       ? createDispatcherWithTyping({
           deliver: async (payload: unknown, info?: { kind?: string }) => {
-            await deliverFinalOnly(payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] }, info);
+            await deliver(payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] }, info);
           },
           humanDelay,
           onError: (err: unknown, info: { kind: string }) => {
@@ -1361,7 +1284,7 @@ export async function handleDingtalkMessage(params: {
       : {
           dispatcher: createDispatcher?.({
             deliver: async (payload: unknown, info?: { kind?: string }) => {
-              await deliverFinalOnly(payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] }, info);
+              await deliver(payload as { text?: string; mediaUrl?: string; mediaUrls?: string[] }, info);
             },
             humanDelay,
             onError: (err: unknown, info: { kind: string }) => {
